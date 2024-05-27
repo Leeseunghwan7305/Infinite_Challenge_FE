@@ -97,4 +97,10 @@ export default Favorites;
 
 const Page = styled.div``;
 
-const FavoritesLists = styled(ResultsContainer)``;
+const FavoritesLists = styled(ResultsContainer)`
+  max-width: 1200px;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+`;

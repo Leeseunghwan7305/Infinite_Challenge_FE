@@ -1,12 +1,14 @@
 import useInput from "./useInput";
 import { ResultListType } from "../types/searchResult";
-import useInfiniteScroll from "./useInfiniteScroll";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { QueryKeys } from "../queryClient";
 import { getSearchResults } from "../remote/apis/main";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
-const LIMIT = 4;
+const LIMIT = 10;
 const useSearchResult = () => {
+  const location = useLocation();
   const { value, setValue, onChange } = useInput();
 
   const {
@@ -26,10 +28,10 @@ const useSearchResult = () => {
     enabled: false,
   });
 
-  const observerRef = useInfiniteScroll(fetchNextPage, {
-    rootMargin: "200px",
-    threshold: 0,
-  });
+  // const observerRef = useInfiniteScroll(fetchNextPage, {
+  //   rootMargin: "200px",
+  //   threshold: 0,
+  // });
 
   const toggleFavorites = (searchResult: ResultListType) => {
     const favoritesData = localStorage.getItem("favorites");
@@ -54,6 +56,20 @@ const useSearchResult = () => {
     }
   };
 
+  const getSearchParams = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get("search");
+  };
+
+  const searchValue = getSearchParams();
+
+  useEffect(() => {
+    if (searchValue) {
+      setValue(searchValue);
+      refetch();
+    }
+  }, []);
+
   // useEffect(() => {
   //   if (searchResults && !hasNextPage) {
   //     alert("마지막 페이지입니다.");
@@ -67,9 +83,9 @@ const useSearchResult = () => {
     searchResults,
     refetch,
     toggleFavorites,
-    observerRef,
     hasNextPage,
     isFetching,
+    fetchNextPage,
   };
 };
 

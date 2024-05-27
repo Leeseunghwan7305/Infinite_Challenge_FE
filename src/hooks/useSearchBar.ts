@@ -3,6 +3,7 @@ import React, { SetStateAction, useEffect, useState } from "react";
 import { ARROW_DOWN, ARROW_UP, ENTER } from "../constants/search";
 import { useGetSearchData } from "../remote/query/main";
 import { useDebouncedSearch } from "./useDebouncedSearch";
+import { useNavigate } from "react-router-dom";
 
 type UseSearchBar = {
   value: string;
@@ -13,7 +14,7 @@ type UseSearchBar = {
 
 const useSearchBar = ({ value, setValue, onChange, refetch }: UseSearchBar) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
-
+  const navigator = useNavigate();
   const [recentData, setRecentData] = useState<{ name: string; id: number }[]>(
     []
   );
@@ -110,6 +111,7 @@ const useSearchBar = ({ value, setValue, onChange, refetch }: UseSearchBar) => {
       setRecentData([{ name: value, id: 0 }]);
     }
 
+    navigator("?search=" + value);
     refetch();
   };
 

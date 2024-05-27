@@ -12,7 +12,6 @@ interface ResultProps {
 
 const ResultList = ({ searchResult, renderBookmark }: ResultProps) => {
   const [isFavorites, setIsFavorites] = useState<boolean>(false);
-
   useEffect(() => {
     const favorites = localStorage.getItem("favorites");
     if (favorites) {
@@ -55,6 +54,8 @@ export default ResultList;
 
 const Wrapper = styled.div`
   width: 431px;
+  min-height: 300px;
+  max-height: 400px;
   max-width: 90%;
   margin: 0 auto;
   background-color: rgba(255, 255, 255, 1);
