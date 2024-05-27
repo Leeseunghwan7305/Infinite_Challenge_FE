@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import SearchBar from "../components/main/SearchBar";
 import styled, { keyframes } from "styled-components";
 import {
@@ -12,6 +11,9 @@ import ResultList from "../components/main/ResultList";
 import { ResultListType } from "../types/searchResult";
 import Bookmark from "../common/Image/Bookmark";
 import BookmarkBorder from "../common/Image/BookmarkBorder";
+import { VirtuosoGrid, VirtuosoHandle } from "react-virtuoso";
+import { forwardRef, useCallback, useEffect, useRef } from "react";
+import React from "react";
 
 const Main = () => {
   const {
@@ -21,10 +23,46 @@ const Main = () => {
     searchResults,
     refetch,
     toggleFavorites,
-    observerRef,
     hasNextPage,
     isFetching,
+    fetchNextPage,
   } = useSearchResult();
+
+  const loadMore = useCallback(() => {
+    if (!isFetching && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [isFetching, hasNextPage, fetchNextPage]);
+
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
+
+  // 스크롤 위치 저장 및 복원 로직
+  const saveScrollPosition = () => {
+    if (virtuosoRef.current) {
+      const scrollTop = window.scrollY;
+      sessionStorage.setItem("scrollPosition", String(scrollTop));
+    }
+  };
+
+  const restoreScrollPosition = () => {
+    const savedScrollPosition =
+      Number(sessionStorage.getItem("scrollPosition")) || 0;
+    if (virtuosoRef.current) {
+      virtuosoRef.current.scrollToIndex({
+        index: savedScrollPosition,
+        align: "start",
+      });
+    }
+    console.log(savedScrollPosition);
+  };
+
+  useEffect(() => {
+    restoreScrollPosition();
+    window.addEventListener("scroll", saveScrollPosition);
+    return () => {
+      window.removeEventListener("scroll", saveScrollPosition);
+    };
+  }, []);
 
   return (
     <Page>
@@ -37,16 +75,25 @@ const Main = () => {
           onChange={onChange}
         />
       </SearchBanner>
-      {(!searchResults || searchResults?.pages[0].count === 0) && (
+      {(!searchResults || searchResults?.pages[0]?.results.length === 0) && (
         <NoResult
           title={NO_RESULT_MESSAGE}
           description={NO_RESULT_MESSAGE_DESCRIPTION}
         />
       )}
-      <ResultsContainer>
-        {searchResults?.pages.flatMap((page) => {
-          return page?.results.map((result: ResultListType, index: number) => {
-            return (
+      {searchResults && (
+        <VirtuosoGrid
+          ref={virtuosoRef}
+          style={{
+            height: `calc(100vh - 50px)`,
+            margin: 0,
+          }}
+          useWindowScroll
+          data={searchResults?.pages.flatMap((page) => page.results) || []}
+          endReached={loadMore}
+          overscan={200}
+          itemContent={(index, result: ResultListType) =>
+            result && (
               <ResultItem key={result.id} index={index}>
                 <ResultList
                   searchResult={result}
@@ -78,11 +125,46 @@ const Main = () => {
                   }
                 />
               </ResultItem>
-            );
-          });
-        })}
-      </ResultsContainer>
-      {hasNextPage && !isFetching && <Hidden ref={observerRef} />}
+            )
+          }
+          components={{
+            List: forwardRef(({ style, children, ...props }, ref) => (
+              <div
+                ref={ref}
+                {...props}
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  margin: "0 auto",
+                  paddingBottom: "20px",
+                  maxWidth: "1200px",
+                  gap: "1rem",
+                  ...style,
+                }}
+              >
+                {children}
+              </div>
+            )),
+            Item: ({ children, ...props }) => (
+              <div
+                {...props}
+                style={{
+                  padding: "0.5rem",
+                  width: "calc(50% - 1rem)", // 한 줄에 2개의 아이템이 나오도록 설정
+                  maxWidth: "90%",
+                  display: "flex",
+                  justifyContent: "center",
+                  flex: "none",
+                  alignContent: "stretch",
+                  boxSizing: "border-box",
+                }}
+              >
+                {children}
+              </div>
+            ),
+          }}
+        />
+      )}
     </Page>
   );
 };
@@ -96,7 +178,6 @@ const SearchBanner = styled.section`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
   width: 100%;
   height: 46rem;
   background-color: rgba(202, 233, 255, 1);
@@ -107,7 +188,6 @@ const BannerTitle = styled.h3`
   font-weight: bold;
   line-height: 5.2rem;
   text-align: center;
-
   white-space: pre-line;
   margin-bottom: 40px;
 `;
@@ -122,30 +202,11 @@ export const fadeIn = keyframes`
 `;
 
 export const ResultsContainer = styled.div`
-  max-width: 1000px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 10px;
-  justify-content: center;
-
-  padding: 20px 10px 20px 10px;
+  width: 100%;
+  padding: 20px 10px;
 `;
 
 export const ResultItem = styled.div<{ index: number }>`
-  animation: ${fadeIn} 0.5s ease-in-out forwards;
-  opacity: 0;
+  max-width: 90%;
   margin-top: 20px;
-  padding-bottom: 50px;
-  &:nth-child(${(props) => props.index + 1}) {
-    animation-delay: ${(props) => props.index * 0.5}s;
-  }
-`;
-
-const Hidden = styled.div`
-  display: hidden;
-  height: 20px;
 `;
