@@ -79,8 +79,10 @@
 ![2024-05-1010 09 48-ezgif com-video-to-gif-converter](https://github.com/Leeseunghwan7305/Infinite_Challenge_FE/assets/78102507/378ec5b8-452d-4c64-8147-4f8a909deea7)
 
 ### 검색 리스트 무한 스크롤
-
 ![ezgif com-video-to-gif-converter](https://github.com/Leeseunghwan7305/Infinite_Challenge_FE/assets/78102507/a4e5f022-7ccc-41f7-b7ab-3aa66b7b98de)
+
+### 가상스크롤
+![가상스크롤](https://github.com/Leeseunghwan7305/Infinite_Challenge_FE/assets/78102507/7345fbf7-056b-40f3-94de-b3bc2778a0c1)
 
 ### 검색 리스트 즐겨찾기 스크랩 등록 및 삭제
 
